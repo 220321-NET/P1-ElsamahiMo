@@ -55,4 +55,19 @@ public class SLBL : ISLBL
     {
         _repo.UpdateQuantityOrder(cartItem, storeID);
     }
+
+    public Inventory UpdateQuantity(int newQuan, Inventory replenishPro, Store replenishStore)
+    {
+        return _repo.UpdateQuantity(newQuan, replenishPro, replenishStore);
+    }
+
+    public List<History> GetOrderHistory(Customer current)
+    {
+        return _repo.GetOrderHistory(current);
+    }
+
+    public List<Product> GetAllProducts()
+    {
+        return _repo.GetAllProducts();
+    }
 }

@@ -264,4 +264,78 @@ public class DBRepository : IRepository
         return allStores;
     }
 
+    public Inventory UpdateQuantity(int newQuan, Inventory replenishPro, Store replenishStore)
+    {
+        Inventory newReplenish = replenishPro;
+        newReplenish.quan = newQuan;
+
+        using SqlConnection connection = new SqlConnection(_connectionString);
+        connection.Open();
+
+        using SqlCommand cmd = new SqlCommand("UPDATE Inventory SET quantity = @quan WHERE productID = @proID AND storeID = @storeID", connection);
+        
+        cmd.Parameters.AddWithValue("@quan", newQuan);
+        cmd.Parameters.AddWithValue("@proID", replenishPro.invPro.Id);
+        cmd.Parameters.AddWithValue("@storeID", replenishStore.Id);
+        cmd.ExecuteScalar();
+
+        return newReplenish;
+    }
+
+    public List<History> GetOrderHistory(Customer current)
+    {
+        List<History> history = new List<History>();
+
+        using SqlConnection connection = new SqlConnection(_connectionString);
+        connection.Open();
+
+        using SqlCommand cmd = new SqlCommand("SELECT Stores.storeLocation, Orders.total, Orders.dateCreated FROM Orders JOIN Customers ON Orders.customerID = Customers.id JOIN Stores ON Orders.storeID = Stores.id WHERE Orders.customerID = @custID", connection);
+        cmd.Parameters.AddWithValue("@custID", current.Id);
+
+        SqlDataReader read = cmd.ExecuteReader();
+
+        while (read.Read())
+        {
+            History temp = new History{
+                StoreLocation = read.GetString(0),
+                Total = read.GetDouble(1),
+                OrderDate = read.GetDateTime(2)
+            };
+
+            history.Add(temp);
+        }
+
+        read.Close();
+        connection.Close();
+
+        return history;
+    }
+
+    public List<Product> GetAllProducts()
+    {
+        List<Product> allPro = new List<Product>();
+
+        using SqlConnection connection = new SqlConnection(_connectionString);
+        connection.Open();
+
+        using SqlCommand cmd = new SqlCommand("SELECT * FROM Products",connection);
+        SqlDataReader read = cmd.ExecuteReader();
+
+        while (read.Read())
+        {
+            Product temp = new Product{
+                Id = read.GetInt32(0),
+                ItemName = read.GetString(1),
+                Price = read.GetDouble(2)
+            };
+
+            allPro.Add(temp);
+        }
+
+        read.Close();
+        connection.Close();
+
+        return allPro;
+    }
+
 }

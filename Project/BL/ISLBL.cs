@@ -12,4 +12,7 @@ public interface ISLBL
     List<Store> GetStores();
     Order UpdateOrders(Order updateOrder);
     void UpdateQuantityOrder(Cart cartItem, int storeID);
+    Inventory UpdateQuantity(int newQuan, Inventory replenishPro, Store replenishStore);
+    List<History> GetOrderHistory(Customer current);
+    List<Product> GetAllProducts();
 }

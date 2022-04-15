@@ -28,4 +28,9 @@ public class Product : Default
             price = value;
         }
     }
+
+    public override string ToString()
+    {
+        return $"[{Id}]:\t{itemName}";
+    }
 }
