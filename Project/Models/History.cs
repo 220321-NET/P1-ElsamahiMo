@@ -11,6 +11,6 @@ public class History : Default
 
     public override string ToString()
     {
-        return $"\t{StoreLocation}: \t${Total} \tPlaced on: {OrderDate}";
+        return $"\t{StoreLocation}: \t${Total}   \tPlaced on: {OrderDate}";
     }
 }

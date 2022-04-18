@@ -12,7 +12,7 @@ public class DBRepository : IRepository
         _connectionString = connectionString;
     }
 
-    public Customer CreateCustomer(Customer newCustomer)
+    public async Task<Customer> CreateCustomerAsync(Customer newCustomer)
     {
         using SqlConnection connection = new SqlConnection(_connectionString);
         connection.Open();
@@ -28,7 +28,7 @@ public class DBRepository : IRepository
         return newCustomer;
     }
 
-    public int LoginCheck (Customer login)
+    public async Task<int> LoginCheckAsync (string cusName, string cusPass)
     {
         bool found = false;
         bool correct = false;
@@ -38,7 +38,7 @@ public class DBRepository : IRepository
         
         using SqlCommand cmd = new SqlCommand("SELECT * FROM Customers WHERE customerName = @customerName", connection);
 
-        cmd.Parameters.AddWithValue("@customerName", login.Name);
+        cmd.Parameters.AddWithValue("@customerName", cusName);
 
         SqlDataReader read = cmd.ExecuteReader();
         if(read.HasRows)
@@ -47,8 +47,8 @@ public class DBRepository : IRepository
 
         using SqlCommand cmd2 = new SqlCommand("SELECT * FROM Customers WHERE customerName = @customerName AND customerPass = @customerPass", connection);
 
-        cmd2.Parameters.AddWithValue("@customerName", login.Name);
-        cmd2.Parameters.AddWithValue("@customerPass", login.Pass);
+        cmd2.Parameters.AddWithValue("@customerName", cusName);
+        cmd2.Parameters.AddWithValue("@customerPass", cusPass);
 
         SqlDataReader read2 = cmd2.ExecuteReader();
         if(read2.HasRows)
@@ -68,7 +68,7 @@ public class DBRepository : IRepository
 
     }
 
-    public Customer GetCustomer(Customer cust)
+    public async Task<Customer> GetCustomerAsync(string cusName)
     {
         Customer returnCust = new Customer();
 
@@ -76,11 +76,11 @@ public class DBRepository : IRepository
         connection.Open();
 
         using SqlCommand cmd = new SqlCommand("SELECT * FROM Customers WHERE customerName = @customerName", connection);
-        cmd.Parameters.AddWithValue("@customerName", cust.Name);
+        cmd.Parameters.AddWithValue("@customerName", cusName);
 
         SqlDataReader read = cmd.ExecuteReader();
 
-        if(read.Read())
+        if(await read.ReadAsync())
         {
             int tempID = read.GetInt32(0);
             string name = read.GetString(1);
@@ -98,7 +98,7 @@ public class DBRepository : IRepository
         return returnCust;
     }
 
-    public Product CreateProduct(Product newPro)
+    public async Task<Product> CreateProductAsync(Product newPro)
     {
         using SqlConnection connection = new SqlConnection(_connectionString);
         connection.Open();
@@ -145,7 +145,7 @@ public class DBRepository : IRepository
 
     }
 
-    public List<Inventory> GetInventory(Store getInv)
+    public List<Inventory> GetInventory(int storeID)
     {
 
         List<Inventory> inv = new List<Inventory>();
@@ -154,7 +154,7 @@ public class DBRepository : IRepository
         connection.Open();
 
         using SqlCommand cmd = new SqlCommand("SELECT * FROM Inventory WHERE storeID = @storeId", connection);
-        cmd.Parameters.AddWithValue("@storeId", getInv.Id);
+        cmd.Parameters.AddWithValue("@storeId", storeID);
         
         SqlDataReader read = cmd.ExecuteReader();
 
@@ -236,7 +236,7 @@ public class DBRepository : IRepository
         return updateOrder;
     }
 
-    public List<Store> GetStores()
+    public async Task<List<Store>> GetStoresAsync()
     {
         List<Store> allStores = new List<Store>();
 
@@ -246,7 +246,7 @@ public class DBRepository : IRepository
         using SqlCommand cmd = new SqlCommand("SELECT * FROM Stores", connection);
         SqlDataReader read = cmd.ExecuteReader();
 
-        while(read.Read())
+        while(await read.ReadAsync())
         {
             int id = read.GetInt32(0);
             string location = read.GetString(1);
@@ -311,7 +311,7 @@ public class DBRepository : IRepository
         return history;
     }
 
-    public List<Product> GetAllProducts()
+    public async Task<List<Product>> GetAllProductsAsync()
     {
         List<Product> allPro = new List<Product>();
 
@@ -321,7 +321,7 @@ public class DBRepository : IRepository
         using SqlCommand cmd = new SqlCommand("SELECT * FROM Products",connection);
         SqlDataReader read = cmd.ExecuteReader();
 
-        while (read.Read())
+        while (await read.ReadAsync())
         {
             Product temp = new Product{
                 Id = read.GetInt32(0),

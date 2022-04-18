@@ -1,21 +1,19 @@
 using Models;
-using BL;
-using DL;
 using System.ComponentModel.DataAnnotations;
 
 namespace UI;
 
-public class Menu
+internal class Menu
 {
 
-    private readonly ISLBL _bl;
+    private readonly HttpService _httpService;
 
-    public Menu(ISLBL bl)
-    {
-        _bl = bl;
+    public Menu(HttpService httpService) 
+    { 
+        _httpService = httpService;
     }
 
-    public void Start()
+    public async Task Start()
     {
         bool exit = false;
         do
@@ -32,13 +30,13 @@ public class Menu
             switch(response.Trim().ToUpper())
             {
                 case "0": 
-                    Login();
+                    await LoginAsync();
                     break;
                 case "1":
-                    Signup();
+                    await Signup();
                     break;
                 case "14383421":
-                    Admin();
+                    await Admin();
                     break;
                 case "X":
                     Console.WriteLine("Goodbye.");
@@ -57,7 +55,7 @@ public class Menu
         Console.WriteLine("\n-------------------------------------------\n");
     }
 
-    public void Login()
+    public async Task LoginAsync()
     {
         Transition();
 
@@ -80,7 +78,7 @@ public class Menu
             goto EnterLogin;
         }
 
-        int results = _bl.LoginCheck(login);
+        int results = await _httpService.LoginCheckAsync(login.Name,login.Pass);
         switch(results)
         {
             case 0:
@@ -101,7 +99,7 @@ public class Menu
                 InputLogin1:
                 Console.WriteLine("Password is incorrect");
                 Console.WriteLine("Try again? (Y/N)");
-                string? responseLogin1 = Console.ReadLine();
+                string? responseLogin1 = Console.ReadLine() ?? "Q";
                 if (responseLogin1.Trim().ToUpper()[0] == 'Y')
                     goto EnterLogin;
                 else if (responseLogin1.Trim().ToUpper()[0] == 'N')
@@ -113,14 +111,13 @@ public class Menu
                 }
             case 2:
                 Console.WriteLine("Login successful!");
-                CustomerMenu(_bl.GetCustomer(login));
+                Customer current = await _httpService.GetCustomerAsync(login.Name);
+                CustomerMenu(current);
                 break;
-
-
         }
     }
 
-    public void Signup()
+    public async Task Signup()
     {
         Transition();
         Console.WriteLine("Welcome new customer please provide some information before getting started.");
@@ -145,7 +142,7 @@ public class Menu
             goto EnterCustomerInfo;
         }
 
-        Customer createdCustomer = _bl.CreateCustomer(newCustomer);
+        Customer createdCustomer = await _httpService.CreateCustomerAsync(newCustomer);
         if (createdCustomer != null)
             Console.WriteLine("\nAccount created successfully");
     }
@@ -186,14 +183,14 @@ public class Menu
         }while(!customerExit);
     }
 
-    public void ShopGames(Customer current)
+    public async Task ShopGames(Customer current)
     {
         Order currentOrder = new Order();
         int count = 0;
 
         Transition();
         Console.WriteLine("Which store would you like to shop at?");
-        Store shopAt = SelectStore();
+        Store shopAt = await SelectStoreAsync();
 
         KeepShopping:
         Transition();
@@ -273,14 +270,14 @@ public class Menu
     public void CheckOut(Order currentOrder)
     {
         
-        for(int i = 0; i < currentOrder.CartItem().Count(); i++)
-            _bl.UpdateQuantityOrder(currentOrder.CartItem()[i], currentOrder.StoreID);
+        // for(int i = 0; i < currentOrder.CartItem().Count(); i++)
+        //     _bl.UpdateQuantityOrder(currentOrder.CartItem()[i], currentOrder.StoreID);
 
-        currentOrder.DateCreated = DateTime.Now;
-        if(_bl.UpdateOrders(currentOrder) != null)
-        {
-            Console.WriteLine("Order Placed!!!");
-        }
+        // currentOrder.DateCreated = DateTime.Now;
+        // if(_bl.UpdateOrders(currentOrder) != null)
+        // {
+        //     Console.WriteLine("Order Placed!!!");
+        // }
     }
 
     public void DisplayHistory(Customer current)
@@ -288,11 +285,11 @@ public class Menu
         Transition();
         Console.WriteLine($"This is the order history for the user: {current.Name}\n");
         
-        List<History> history = _bl.GetOrderHistory(current);
-        for (int i = 0; i < history.Count(); i++)
-        {
-            Console.WriteLine($"[{i+1}] {history[i].ToString()}");
-        }
+        // List<History> history = _bl.GetOrderHistory(current);
+        // for (int i = 0; i < history.Count(); i++)
+        // {
+        //     Console.WriteLine($"[{i+1}] {history[i].ToString()}");
+        // }
 
         Console.WriteLine("\nPress Enter to continue");
         Console.ReadLine();
@@ -302,7 +299,7 @@ public class Menu
 //End of customer menu funtions
 //--------------------------------------------------------------------
 
-    public void Admin()
+    public async Task Admin()
     {
         bool adminExit = false;
         do
@@ -327,10 +324,10 @@ public class Menu
                         ViewInventory();
                         break;
                     case '2':
-                        AddProduct();
+                        await AddProduct();
                         break;
                     case '3':
-                        AddProductToStore();
+                        await AddProductToStoreAsync();
                         break;
                     case 'X':
                         adminExit = true;
@@ -342,11 +339,11 @@ public class Menu
         }while(!adminExit);
     }
 
-        public void ReplenishStock()
+        public async Task ReplenishStock()
     {
         Transition();
         Console.WriteLine("Please choose a location to replenish stocks at");
-        Store? replenishStore = SelectStore();
+        Store? replenishStore = await SelectStoreAsync();
 
         Transition();
         Inventory? replenishPro = SelectInventory(replenishStore);
@@ -354,34 +351,34 @@ public class Menu
         Console.WriteLine($"Please enter the new quantity of {replenishPro.invPro.ItemName}");
         int newQuan = Convert.ToInt32(Console.ReadLine());
 
-        Inventory newReplenish = _bl.UpdateQuantity(newQuan, replenishPro, replenishStore);
+        // Inventory newReplenish = _bl.UpdateQuantity(newQuan, replenishPro, replenishStore);
 
-        Console.WriteLine($"Here is your newly updated product: {newReplenish.ToString()}");
+        // Console.WriteLine($"Here is your newly updated product: {newReplenish.ToString()}");
     }
 
-    public void ViewInventory()
+    public async Task ViewInventory()
     {
         Transition();
         Console.WriteLine("Which store would you like to view the inventory for?");
-        Store? viewStore = SelectStore();
+        Store? viewStore = await SelectStoreAsync();
 
-        Console.WriteLine($"Here is the Inventory for the {viewStore.StoreLocation} store:");
-        List<Inventory> inventory = _bl.GetInventory(viewStore);
+        // Console.WriteLine($"Here is the Inventory for the {viewStore.StoreLocation} store:");
+        // List<Inventory> inventory = _bl.GetInventory(viewStore);
 
-        if (inventory.Count == 0)
-        {
-            Console.WriteLine("This store has no inventory");
-            return;
-        }
-        for (int i = 0; i < inventory.Count; i++)
-            Console.WriteLine($"[{i}]: {inventory[i].ToString()}");
+        // if (inventory.Count == 0)
+        // {
+        //     Console.WriteLine("This store has no inventory");
+        //     return;
+        // }
+        // for (int i = 0; i < inventory.Count; i++)
+        //     Console.WriteLine($"[{i}]: {inventory[i].ToString()}");
 
-        Console.WriteLine("Press enter to continue");
-        Console.ReadLine();
+        // Console.WriteLine("Press enter to continue");
+        // Console.ReadLine();
         
     }
 
-    public void AddProduct() 
+    public async Task AddProduct() 
     {
         Transition();
         
@@ -405,30 +402,31 @@ public class Menu
             goto EnterProductInfo;
         }
 
-        Product createdProduct = _bl.CreateProduct(newPro);
+        Product createdProduct = await _httpService.CreateProductAsync(newPro);
         if (createdProduct != null)
             Console.WriteLine("\nProduct created successfully");
     }
 
-    public void AddProductToStore()
+    public async Task AddProductToStoreAsync()
     {
         Transition();
         Console.WriteLine("Which store do you want to add a product to?");
-        Store? addProStore = SelectStore();
+        Store? addProStore = await SelectStoreAsync();
 
         Transition();
         Console.WriteLine($"Which Product would you like to add to {addProStore.StoreLocation} location");
-        Product addPro = SelectProducts();
+        Product addPro = await SelectProductsAsync();
 
         //TODO: FINISH THIS SHIT
 
     }
 
-    public Product SelectProducts()
+    public async Task<Product> SelectProductsAsync()
     {
         Transition();
-        Console.WriteLine("Here are all available Products");
-        List<Product> allPro = _bl.GetAllProducts();
+        Console.WriteLine("Here are all the Products");
+        
+        List<Product> allPro = await _httpService.GetAllProductAsync();
 
         InvInput:
         for (int i = 0; i < allPro.Count; i++)
@@ -452,10 +450,10 @@ public class Menu
 // used by both admin and customer
 //--------------------------------------------------------------------
 
-    public Store? SelectStore()
+    public async Task<Store?> SelectStoreAsync()
     {
         Console.WriteLine("Here are all the stores by state: ");
-        List<Store> allStores = _bl.GetStores();
+        List<Store> allStores = await _httpService.GetStoresAsync();
 
         if(allStores.Count == 0)
             return null;
@@ -473,34 +471,36 @@ public class Menu
             Console.WriteLine("Invalid input, Try again");
             goto SelectInput;
         }
+        // return new Store();
     } 
 
     
     public Inventory SelectInventory(Store getInv)
     {
-        Console.WriteLine($"Here is the Inventory for the {getInv.StoreLocation} store:");
-        List<Inventory> inventory = _bl.GetInventory(getInv);
+        // Console.WriteLine($"Here is the Inventory for the {getInv.StoreLocation} store:");
+        // List<Inventory> inventory = _bl.GetInventory(getInv);
 
-        if (inventory.Count == 0)
-            return null;
+        // if (inventory.Count == 0)
+        //     return null;
         
-        InvInput:
-        for (int i = 0; i < inventory.Count; i++)
-            Console.WriteLine($"[{i}]: {inventory[i].ToString()}");
+        // InvInput:
+        // for (int i = 0; i < inventory.Count; i++)
+        //     Console.WriteLine($"[{i}]: {inventory[i].ToString()}");
         
-        int proSelect;
+        // int proSelect;
 
-        //this if block is different from the two previous becuase I want a 0-N list in order,
-        //not one that skips numbers. This could happen if a store does not hold every piece of product
-        //which is why I am using proSelect instead of proSelect-1. it is printing the number from the for loop, not the object ID
-        //Hopefully some of that made any sense
-        if(Int32.TryParse(Console.ReadLine(), out proSelect) && ((proSelect) >= 0 && (proSelect) < inventory.Count))
-            return inventory[proSelect];
-        else
-        {
-            Console.WriteLine("Invalid input, Try again");
-            goto InvInput;
-        }
+        // //this if block is different from the two previous becuase I want a 0-N list in order,
+        // //not one that skips numbers. This could happen if a store does not hold every piece of product
+        // //which is why I am using proSelect instead of proSelect-1. it is printing the number from the for loop, not the object ID
+        // //Hopefully some of that made any sense
+        // if(Int32.TryParse(Console.ReadLine(), out proSelect) && ((proSelect) >= 0 && (proSelect) < inventory.Count))
+        //     return inventory[proSelect];
+        // else
+        // {
+        //     Console.WriteLine("Invalid input, Try again");
+        //     goto InvInput;
+        // }
+        return new Inventory();
     }
 
 }

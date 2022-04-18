@@ -11,24 +11,24 @@ public class SLBL : ISLBL
         _repo = repo;
     }
 
-    public Customer CreateCustomer(Customer newCustomer)
+    public async Task<Customer> CreateCustomerAsync(Customer newCustomer)
     {
-        return _repo.CreateCustomer(newCustomer);
+        return await _repo.CreateCustomerAsync(newCustomer);
     }
 
-    public int LoginCheck(Customer login)
+    public async Task<int> LoginCheckAsync(string cusName, string cusPass)
     {
-        return _repo.LoginCheck(login);
+        return await _repo.LoginCheckAsync(cusName, cusPass);
     }
 
-    public Customer GetCustomer(Customer cust)
+    public async Task<Customer> GetCustomerAsync(string cusName)
     {
-        return _repo.GetCustomer(cust);
+        return await _repo.GetCustomerAsync(cusName);
     }
 
-    public Product CreateProduct(Product newPro)
+    public async Task<Product> CreateProductAsync(Product newPro)
     {
-        return _repo.CreateProduct(newPro);
+        return await _repo.CreateProductAsync(newPro);
     }
 
     public Product GetProduct(int id)
@@ -36,14 +36,14 @@ public class SLBL : ISLBL
         return _repo.GetProduct(id);
     }
 
-    public List<Inventory> GetInventory (Store getInv)
+    public List<Inventory> GetInventory (int storeID)
     {
-        return _repo.GetInventory(getInv);
+        return _repo.GetInventory(storeID);
     }
 
-    public List<Store> GetStores()
+    public async Task<List<Store>> GetStoresAsync()
     {
-        return _repo.GetStores();
+        return await _repo.GetStoresAsync();
     }
 
     public Order UpdateOrders(Order updateOrder)
@@ -66,8 +66,8 @@ public class SLBL : ISLBL
         return _repo.GetOrderHistory(current);
     }
 
-    public List<Product> GetAllProducts()
+    public async Task<List<Product>> GetAllProductsAsync()
     {
-        return _repo.GetAllProducts();
+        return await _repo.GetAllProductsAsync();
     }
 }
