@@ -17,10 +17,7 @@ public class Order : Default
         total += addPrice;
     } 
 
-    public double Total()
-    {
-        return total;
-    }
+    public double Total{ get => total;}
 
     public int CustID {
         get => custID; 

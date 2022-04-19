@@ -31,14 +31,14 @@ public class SLBL : ISLBL
         return await _repo.CreateProductAsync(newPro);
     }
 
-    public Product GetProduct(int id)
-    {
-        return _repo.GetProduct(id);
-    }
+    // public Product GetProduct(int id)
+    // {
+    //     return _repo.GetProduct(id);
+    // }
 
-    public List<Inventory> GetInventory (int storeID)
+    public async Task<List<Inventory>> GetInventoryAsync(int storeID)
     {
-        return _repo.GetInventory(storeID);
+        return await _repo.GetInventoryAsync(storeID);
     }
 
     public async Task<List<Store>> GetStoresAsync()
@@ -46,28 +46,33 @@ public class SLBL : ISLBL
         return await _repo.GetStoresAsync();
     }
 
-    public Order UpdateOrders(Order updateOrder)
+    public async Task<Order> UpdateOrdersAsync(Order updateOrder)
     {
-        return _repo.UpdateOrders(updateOrder);
+        return await _repo.UpdateOrdersAsync(updateOrder);
     }
 
-    public void UpdateQuantityOrder(Cart cartItem, int storeID)
+    public async Task UpdateQuantityOrderAsync(Cart cartItem, int storeID)
     {
-        _repo.UpdateQuantityOrder(cartItem, storeID);
+        await _repo.UpdateQuantityOrderAsync(cartItem, storeID);
     }
 
-    public Inventory UpdateQuantity(int newQuan, Inventory replenishPro, Store replenishStore)
+    public async Task UpdateQuantityAsync(Inventory replenishPro, int storeID)
     {
-        return _repo.UpdateQuantity(newQuan, replenishPro, replenishStore);
+        await _repo.UpdateQuantityAsync(replenishPro, storeID);
     }
 
-    public List<History> GetOrderHistory(Customer current)
+    public async Task<List<History>> GetOrderHistoryAsync(int currentID)
     {
-        return _repo.GetOrderHistory(current);
+        return await _repo.GetOrderHistoryAsync(currentID);
     }
 
     public async Task<List<Product>> GetAllProductsAsync()
     {
         return await _repo.GetAllProductsAsync();
     }
+    public async Task AddProductAsync(Inventory proToAdd, int storeID)
+    {
+        await _repo.AddProductAsync(proToAdd, storeID);
+    }
+
 }

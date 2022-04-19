@@ -50,6 +50,25 @@ public class HttpService
         return cust;
     }
 
+    public async Task<List<Inventory>> GetInventoryAsync(int storeID)
+    {
+        List<Inventory> games = new List<Inventory>();
+
+        try 
+        {
+            HttpResponseMessage response = await client.GetAsync($"Items/GetInventory/{storeID}");
+            response.EnsureSuccessStatusCode();
+            string responseString = await response.Content.ReadAsStringAsync();
+            games = JsonSerializer.Deserialize<List<Inventory>>(responseString) ?? new List<Inventory>();
+        }
+        catch(HttpRequestException ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+
+        return games;
+    }
+
     public async Task<List<Product>> GetAllProductAsync()
     {
 
@@ -90,6 +109,26 @@ public class HttpService
 
         return stores;
     }
+
+    public async Task<List<History>> GetHistoryAsync(int custID)
+    {
+        List<History> history = new List<History>();
+
+        try 
+        {
+            HttpResponseMessage response = await client.GetAsync($"Items/GetHistory/{custID}");
+            response.EnsureSuccessStatusCode();
+            string responseString = await response.Content.ReadAsStringAsync();
+            history = JsonSerializer.Deserialize<List<History>>(responseString) ?? new List<History>();
+        }
+        catch(HttpRequestException ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+
+        return history;
+    }
+
     public async Task<Customer> CreateCustomerAsync(Customer cusToCreate)
     {
         string json = JsonSerializer.Serialize(cusToCreate);
@@ -106,7 +145,7 @@ public class HttpService
             throw;
         }
     }
-    
+
     public async Task<Product> CreateProductAsync(Product proToCreate)
     {
         string json = JsonSerializer.Serialize(proToCreate);
@@ -124,4 +163,70 @@ public class HttpService
         }
     }
 
+    public async Task AddProductAsync(Inventory proToAdd, int storeID)
+    {
+        string json = JsonSerializer.Serialize(proToAdd);
+        StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        try
+        {
+            HttpResponseMessage response = await client.PostAsync($"Items/AddProduct/{storeID}", content);
+            response.EnsureSuccessStatusCode();
+        }
+        catch(HttpRequestException)
+        {
+            throw;
+        }
+    }
+
+    public async Task<Order> UpdateOrdersAsync(Order orderToCreate)
+    {
+        string json = JsonSerializer.Serialize(orderToCreate);
+        StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        
+        try
+        {
+            HttpResponseMessage response = await client.PostAsync("Items/CreateOrder", content);
+            response.EnsureSuccessStatusCode();
+            return await JsonSerializer.DeserializeAsync<Order>(await response.Content.ReadAsStreamAsync()) ?? new Order();
+        }
+        catch (HttpRequestException)
+        {
+            throw;
+        }
+
+    }
+
+    public async Task UpdateQuantityOrderAsync(Cart cartItem, int storeID)
+    {
+        string json = JsonSerializer.Serialize(cartItem);
+        StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        try
+        {
+            HttpResponseMessage response = await client.PutAsync($"Items/UpdateQuantityOrder/{storeID}", content);
+            response.EnsureSuccessStatusCode();
+        }
+        catch (HttpRequestException)
+        {
+            throw;
+        }
+    }
+
+    public async Task UpdateQuantityAsync(Inventory replenishPro, int storeID)
+    {
+        string json = JsonSerializer.Serialize(replenishPro);
+        StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        try
+        {
+            HttpResponseMessage response = await client.PutAsync($"Items/UpdateQuantity/{storeID}", content);
+            response.EnsureSuccessStatusCode();
+        }
+        catch (HttpRequestException)
+        {
+            throw;
+        }
+    }
 }

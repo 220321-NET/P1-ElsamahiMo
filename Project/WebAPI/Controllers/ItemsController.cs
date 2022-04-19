@@ -42,10 +42,31 @@ namespace WebAPI.Controllers
             return await _bl.GetStoresAsync();
         }
 
-        [HttpGet("GetInventory")]
-        public List<Inventory> GetInventory(int storeID)
+        [HttpGet("GetInventory/{storeID}")]
+        public async Task<List<Inventory>> GetInventoryAsync(int storeID)
         {
-            return _bl.GetInventory(storeID);
+            return await _bl.GetInventoryAsync(storeID);
+        }
+
+        [HttpGet("GetHistory/{custID}")]
+        public async Task<List<History>> GetHistoryAsync(int custID)
+        {
+            return await _bl.GetOrderHistoryAsync(custID);
+
+        }
+
+        //PUT api/<ItemsController>
+
+        [HttpPut("UpdateQuantity/{storeID}")]
+        public async Task UpdateQuantity(Inventory replenishPro, int storeID)
+        {   
+            await _bl.UpdateQuantityAsync(replenishPro, storeID);
+        }
+
+        [HttpPut("UpdateQuantityOrder/{storeID}")]
+        public async Task UpdateQuantityOrderAsync([FromBody]Cart cartItem, int storeID)
+        {
+            await _bl.UpdateQuantityOrderAsync(cartItem, storeID);
         }
 
 
@@ -62,10 +83,18 @@ namespace WebAPI.Controllers
             return await _bl.CreateProductAsync(proCreate);
         }
 
-        // DELETE api/<ItemsController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        [HttpPost("CreateOrder")]
+        public async Task<Order> CreateOrderAsync([FromBody] Order orderToCreate)
         {
+            return await _bl.UpdateOrdersAsync(orderToCreate);
         }
+
+        [HttpPost("AddProduct/{storeID}")]
+        public async Task AddProductAsync(Inventory proToAdd, int storeID)
+        {
+            await _bl.AddProductAsync(proToAdd, storeID);
+        }
+
+        
     }
 }

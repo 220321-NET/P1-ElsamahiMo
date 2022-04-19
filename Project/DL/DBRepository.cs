@@ -114,7 +114,7 @@ public class DBRepository : IRepository
         return newPro;
     }
 
-    public Product GetProduct(int id)
+    public async Task<Product> GetProductAsync(int id)
     {   
 
         Product temp = new Product();
@@ -127,7 +127,7 @@ public class DBRepository : IRepository
         
         SqlDataReader read = cmd.ExecuteReader();
 
-        if(read.Read())
+        if(await read.ReadAsync())
         {
             int tempID = read.GetInt32(0);
             string name = read.GetString(1);
@@ -145,7 +145,7 @@ public class DBRepository : IRepository
 
     }
 
-    public List<Inventory> GetInventory(int storeID)
+    public async Task<List<Inventory>> GetInventoryAsync(int storeID)
     {
 
         List<Inventory> inv = new List<Inventory>();
@@ -158,9 +158,9 @@ public class DBRepository : IRepository
         
         SqlDataReader read = cmd.ExecuteReader();
 
-        while(read.Read())
+        while(await read.ReadAsync())
         {
-            Product tempPro = GetProduct(read.GetInt32(2));
+            Product tempPro =  await GetProductAsync(read.GetInt32(2));
             int quan = read.GetInt32(1);
 
             Inventory tempInv = new Inventory{
@@ -179,7 +179,7 @@ public class DBRepository : IRepository
         return SortedList;
     }
 
-    public void UpdateQuantityOrder(Cart cartItem, int storeID)
+    public async Task UpdateQuantityOrderAsync(Cart cartItem, int storeID)
     {
         using SqlConnection connection = new SqlConnection(_connectionString);
         connection.Open();
@@ -191,7 +191,7 @@ public class DBRepository : IRepository
         SqlDataReader readLol = cmd2.ExecuteReader();
         
 
-        if (readLol.Read())
+        if (await readLol.ReadAsync())
         {
             newQuan = (readLol.GetInt32(1) - cartItem.cartQuan);
             readLol.Close();
@@ -210,7 +210,7 @@ public class DBRepository : IRepository
 
     }
 
-    public Order UpdateOrders(Order updateOrder)
+    public async Task<Order> UpdateOrdersAsync(Order updateOrder)
     {
         using SqlConnection connection = new SqlConnection(_connectionString);
         connection.Open();
@@ -218,7 +218,7 @@ public class DBRepository : IRepository
         using SqlCommand cmd = new SqlCommand("INSERT INTO Orders(dateCreated, total, storeID, customerID) OUTPUT INSERTED.Id VALUES (@date, @total, @storeID, @customerID)", connection);
 
         cmd.Parameters.AddWithValue("@date", updateOrder.DateCreated);
-        cmd.Parameters.AddWithValue("@total", updateOrder.Total());
+        cmd.Parameters.AddWithValue("@total", updateOrder.Total);
         cmd.Parameters.AddWithValue("@storeID", updateOrder.StoreID);
         cmd.Parameters.AddWithValue("@customerID", updateOrder.CustID);
 
@@ -264,25 +264,22 @@ public class DBRepository : IRepository
         return allStores;
     }
 
-    public Inventory UpdateQuantity(int newQuan, Inventory replenishPro, Store replenishStore)
+    public async Task UpdateQuantityAsync(Inventory replenishPro, int storeID)
     {
-        Inventory newReplenish = replenishPro;
-        newReplenish.quan = newQuan;
-
         using SqlConnection connection = new SqlConnection(_connectionString);
         connection.Open();
 
         using SqlCommand cmd = new SqlCommand("UPDATE Inventory SET quantity = @quan WHERE productID = @proID AND storeID = @storeID", connection);
         
-        cmd.Parameters.AddWithValue("@quan", newQuan);
+        cmd.Parameters.AddWithValue("@quan", replenishPro.quan);
         cmd.Parameters.AddWithValue("@proID", replenishPro.invPro.Id);
-        cmd.Parameters.AddWithValue("@storeID", replenishStore.Id);
+        cmd.Parameters.AddWithValue("@storeID", storeID);
         cmd.ExecuteScalar();
 
-        return newReplenish;
+        connection.Close();
     }
 
-    public List<History> GetOrderHistory(Customer current)
+    public async  Task<List<History>> GetOrderHistoryAsync(int currentID)
     {
         List<History> history = new List<History>();
 
@@ -290,11 +287,11 @@ public class DBRepository : IRepository
         connection.Open();
 
         using SqlCommand cmd = new SqlCommand("SELECT Stores.storeLocation, Orders.total, Orders.dateCreated FROM Orders JOIN Customers ON Orders.customerID = Customers.id JOIN Stores ON Orders.storeID = Stores.id WHERE Orders.customerID = @custID", connection);
-        cmd.Parameters.AddWithValue("@custID", current.Id);
+        cmd.Parameters.AddWithValue("@custID", currentID);
 
         SqlDataReader read = cmd.ExecuteReader();
 
-        while (read.Read())
+        while (await read.ReadAsync())
         {
             History temp = new History{
                 StoreLocation = read.GetString(0),
@@ -338,4 +335,18 @@ public class DBRepository : IRepository
         return allPro;
     }
 
+    public async Task AddProductAsync(Inventory proToAdd, int storeID)
+    {
+        using SqlConnection connection = new SqlConnection(_connectionString);
+        connection.Open();
+
+        using SqlCommand cmd = new SqlCommand("INSERT INTO Inventory(quantity, productID, storeID) OUTPUT INSERTED.Id VALUES (@quan, @proID, @storeID)", connection);
+        cmd.Parameters.AddWithValue("@quan", proToAdd.quan);
+        cmd.Parameters.AddWithValue("@proID", proToAdd.invPro.Id);
+        cmd.Parameters.AddWithValue("@storeID", storeID);
+
+        cmd.ExecuteScalar();
+        connection.Close();
+
+    }
 }

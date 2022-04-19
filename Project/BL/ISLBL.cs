@@ -7,12 +7,13 @@ public interface ISLBL
     Task<int> LoginCheckAsync(string cusName, string cusPass);
     Task<Customer> GetCustomerAsync(string cusName);
     Task<Product> CreateProductAsync(Product newPro);
-    Product GetProduct(int id);
-    List<Inventory> GetInventory(int storeID);
+    // Product GetProduct(int id);
+    Task<List<Inventory>> GetInventoryAsync(int storeID);
     Task<List<Store>> GetStoresAsync();
-    Order UpdateOrders(Order updateOrder);
-    void UpdateQuantityOrder(Cart cartItem, int storeID);
-    Inventory UpdateQuantity(int newQuan, Inventory replenishPro, Store replenishStore);
-    List<History> GetOrderHistory(Customer current);
+    Task<Order> UpdateOrdersAsync(Order updateOrder);
+    Task UpdateQuantityOrderAsync(Cart cartItem, int storeID);
+    Task UpdateQuantityAsync(Inventory replenishPro, int storeID);
+    Task<List<History>> GetOrderHistoryAsync(int currentID);
     Task<List<Product>> GetAllProductsAsync();
+    Task AddProductAsync(Inventory proToAdd, int storeID);
 }
